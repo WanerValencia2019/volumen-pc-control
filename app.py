@@ -1,11 +1,22 @@
-import pyaudio
-import numpy as np
 import subprocess
 import time
+import argparse
+
+import pyaudio
+import numpy as np
+
+parser = argparse.ArgumentParser(description="Controla automáticamente el volumen del sistema basado en el nivel de decibelios capturado.")
+parser.add_argument("--min_dB", type=float, default=90, help="El nivel mínimo de decibelios antes de subir el volumen.")
+parser.add_argument("--max_dB", type=float, default=105, help="El nivel máximo de decibelios antes de bajar el volumen.")
+parser.add_argument("--wait_time", type=float, default=1, help="Tiempo de espera (en segundos) para cambiar el volumen.")
+args = parser.parse_args()
+
 
 previus_volume = 0
 last_change_time = time.time()
-min_delay_between_changes = 5  # seconds
+min_delay_between_changes = args.wait_time
+min_dB = args.min_dB
+max_dB = args.max_dB
 
 
 def set_volume(level):
@@ -33,10 +44,10 @@ def audio_callback(in_data, frame_count, time_info, status):
     volume_dB = 20 * np.log10(volume / reference_value) if volume > 0 else 0
 
     if should_adjust_volume(volume_dB, previus_volume, threshold=10):
-        if volume_dB > 103:
+        if volume_dB > max_dB:
             print("Adjusting volume: lower.")
             set_volume(85)
-        elif volume_dB < 100:
+        elif volume_dB < min_dB:
             print("Adjusting volume: higher.")
             set_volume(100)
         previus_volume = volume_dB
