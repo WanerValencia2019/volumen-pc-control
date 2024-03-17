@@ -67,7 +67,7 @@ stream.start_stream()
 
 try:
     while stream.is_active():
-        pass
+        time.sleep(0.1)
 except KeyboardInterrupt:
     stream.stop_stream()
     stream.close()
